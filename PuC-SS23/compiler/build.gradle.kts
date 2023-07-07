@@ -26,7 +26,7 @@ dependencies {
 }
 
 tasks.generateGrammarSource {
-    arguments = arguments + listOf("-visitor", "-no-listener")
+    arguments = arguments + listOf("-visitor", "-listener")
 }
 
 tasks.withType<KotlinCompile>() {
