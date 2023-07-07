@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
+import * as net from "net";
 
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
-const legend = (function() {
+const legend = (function () {
 	const tokenTypesLegend = [
 		'comment', 'string', 'keyword', 'number', 'regexp', 'operator', 'namespace',
 		'type', 'struct', 'class', 'interface', 'enum', 'typeParameter', 'function',
@@ -33,29 +34,42 @@ interface IParsedToken {
 }
 
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
+
+	output = vscode.window.createOutputChannel("test");
+	client = net.createConnection({ port: 3000 }, () => {
+		this.output.appendLine('connected to server!');
+
+		//register callback method for response
+		this.client.on("data", (answer) =>{
+			//TODO currently data is of type Buffer
+			//TODO data should come as json from server
+			// formatting = should have all the formatting information;
+			this.output.appendLine("test");
+			this.output.appendLine(answer.toString());
+		});
+
+	});
+
+	formatting = [];
+
+
+
+
 	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
 		const allTokens = this._parseText(document.getText());
 		const builder = new vscode.SemanticTokensBuilder();
 
-		const output = vscode.window.createOutputChannel("test");
-		output.show();
+		this.output.appendLine("test");
 
+		this.client.write(document.getText());
+		this.client.end(); //is this really necessary?
+
+		//builder should get filled from class var "formatting"
 		builder.push(0, 0, 3, 13, 0);
 		builder.push(3, 14, 7, 2, 0);
-		//zeile startindex length tokenTypesLegend-index tokenModifiersLegend
+		//lineNum startindex length tokenTypesLegend-index tokenModifiersLegend
 		//manually run npm run compile after changes
 
-
-
-
-		// allTokens.forEach((token) => {
-
-
-		// 	output.appendLine(token.line + " " + token.startCharacter + " " + token.length + " " +
-		// 	this._encodeTokenType(token.tokenType) + " " + this._encodeTokenModifiers(token.tokenModifiers));
-
-		// 	builder.push(token.line, token.startCharacter, token.length, this._encodeTokenType(token.tokenType), this._encodeTokenModifiers(token.tokenModifiers));
-		// });
 		return builder.build();
 	}
 
