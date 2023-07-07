@@ -1,0 +1,25 @@
+{
+  "name": "puc",
+  "displayName": "PucLang",
+  "description": "PucLang Programming Language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "puc",
+      "aliases": ["PuC Programming Language", "puc"],
+      "extensions": [".puc"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "puc",
+      "scopeName": "source.puc",
+      "path": "./syntaxes/puc.tmLanguage.json"
+    }]
+  }
+}
