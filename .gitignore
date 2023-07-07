@@ -2,4 +2,5 @@ test.puc
 Semantic-Highlighting/puclang/.vscode
 Semantic-Highlighting/puclang/node_modules
 Semantic-Highlighting-old
-
+PuC-SS23/.idea
+*/*/bin/*
