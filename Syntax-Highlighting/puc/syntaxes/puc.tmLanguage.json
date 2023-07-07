@@ -1,19 +1,60 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "PuC Programming Language",
+	"name": "PuC programming language",
 	"patterns": [
 		{
 			"include": "#keywords"
+		},
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#defs"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#parameters"
+		},
+		{
+			"include": "#up_name"
+		},
+		{
+			"include": "#name"
+		},
+		{
+			"include": "#constants"
 		},
 		{
 			"include": "#strings"
 		}
 	],
 	"repository": {
+		"types": {
+			"patterns": [{
+				"name": "keyword.storage.type.puc",
+					"match": "\\b(Integer|Text|Bool|type)\\b"
+			}]
+		},
 		"keywords": {
 			"patterns": [{
-				"name": "keyword.control.puc",
-				"match": "\\b(if|while|for|return)\\b"
+					"name": "keyword.control.puc",
+					"match": "\\b(if|then|else|case|of)\\b"
+				},
+				{
+					"name": "storage.type",
+					"match": "\\b(let|in)\\b"
+			}]
+		},
+		"constants": {
+			"patterns": [{
+					"name": "constant.numeric.puc",
+					"match": "\\b[0-9]+\\b"
+				},
+				{
+					"name": "constant.language.type",
+					"match": "\\b(true|false)\\b"
 			}]
 		},
 		"strings": {
@@ -24,6 +65,46 @@
 				{
 					"name": "constant.character.escape.puc",
 					"match": "\\\\."
+				}
+			]
+		},
+		"defs": {
+			"patterns": [
+				{
+					"name": "storage.type",
+					"match": "def"
+				}
+			]
+		},
+		"parameters":{
+			"patterns": [
+				{
+					"name": "variable.parameter",
+					"match": "(?<=def.*)\\b[a-z_][a-zA-Z_]*\\b"
+				}
+			]
+		},
+		"functions": {
+			"patterns": [
+				{
+					"name": "entity.name.function",
+					"match": "\\b[a-z_][a-zA-Z_]*(?=\\s*\\()"
+				}
+			]
+		},
+		"up_name": {
+			"patterns": [
+				{
+					"name": "entity.name.type",
+					"match": "\\b[A-Z][a-zA-Z_]*"
+				}
+			]
+		},
+		"name": {
+			"patterns": [
+				{
+					"name": "variable",
+					"match": "\\b[a-z_][a-zA-Z_]*\\b"
 				}
 			]
 		}
