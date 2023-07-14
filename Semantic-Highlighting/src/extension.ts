@@ -33,43 +33,62 @@ interface IParsedToken {
 	tokenModifiers: string[];
 }
 
+interface Highlight {
+	name: string;
+	start: number;
+	end: number;
+	length: number;
+	lineNum: number;
+}
+
+
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 
+	receivedHighlighting = false;
+	highlighting: Highlight[] = [];
 	output = vscode.window.createOutputChannel("test");
 	client = net.createConnection({ port: 3000 }, () => {
 		this.output.appendLine('connected to server!');
 
-		//register callback method for response
-		this.client.on("data", (answer) =>{
-			//TODO currently data is of type Buffer
-			//TODO data should come as json from server
-			// formatting = should have all the formatting information;
+		this.client.on("data", (answer) => {
+			this.highlighting = JSON.parse(answer.toString());
+			this.receivedHighlighting = true;
 			this.output.appendLine("test");
 			this.output.appendLine(answer.toString());
 		});
 
 	});
 
-	formatting = [];
-
-
-
-
 	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
 		const allTokens = this._parseText(document.getText());
 		const builder = new vscode.SemanticTokensBuilder();
 
-		this.output.appendLine("test");
-
 		this.client.write(document.getText());
-		this.client.end(); //is this really necessary?
+		this.client.end(); //is this really necessary? do we even want this?
 
-		//builder should get filled from class var "formatting"
-		builder.push(0, 0, 3, 13, 0);
-		builder.push(3, 14, 7, 2, 0);
-		//lineNum startindex length tokenTypesLegend-index tokenModifiersLegend
-		//manually run npm run compile after changes
+		//wait for callback to arrive
+		while (!this.receivedHighlighting) {
+			await new Promise(f => setTimeout(f, 10));
+		}
 
+		//print token type map
+		tokenTypes.forEach((value: number, key: string) => {
+			console.log(key, value);
+			this.output.appendLine(key + ": " + value);
+		});
+
+		for (let i = 0; i < this.highlighting.length; i++) {
+			builder.push( //lineNum startindex length tokenTypesLegend-index tokenModifiersLegend
+				this.highlighting[i]["lineNum"],
+				this.highlighting[i]["start"],
+				this.highlighting[i]["length"],
+				this._encodeTokenType(this.highlighting[i]["name"]),
+				0);
+			this.output.appendLine("" + this._encodeTokenType(this.highlighting[i]["name"]));
+		}
+
+
+		this.receivedHighlighting = false;
 		return builder.build();
 	}
 
