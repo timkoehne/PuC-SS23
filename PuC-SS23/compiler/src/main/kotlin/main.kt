@@ -35,7 +35,7 @@ fun convertStringIndicesToLineIndices(highlightListener: HighlightListener, text
                     if (highlight.start in lineStart..lineEnd && highlight.end in lineStart..lineEnd) {
                         newHighlights.add(Highlight(
                                 highlight.type,
-                                highlight.start - lineStart,
+                                highlight.start - (lineStart + lineNum), //not quite sure why we need + lineNum, but it works
                                 0,
                                 lineNum,
                                 highlight.end - highlight.start + 1,
