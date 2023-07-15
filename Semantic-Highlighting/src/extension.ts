@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as net from "net";
+import { exec } from 'child_process';
 
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
@@ -21,8 +22,31 @@ const legend = (function () {
 	return new vscode.SemanticTokensLegend(tokenTypesLegend, tokenModifiersLegend);
 })();
 
-export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'semanticLanguage' }, new DocumentSemanticTokensProvider(), legend));
+const output123 = vscode.window.createOutputChannel("output123");
+
+//TODO laufenden gradle prozess beenden bei deaktivieren
+
+export async function activate(context: vscode.ExtensionContext) {
+	// exec('gradle build -p ../PuC-SS23/compiler/', (err, output) => {
+	// 	if (err) {
+	// 		console.error("Compiler could not be built: ", err);
+	// 		return;
+	// 	}
+	// 	console.log("Output: \n", output);
+	// });
+
+	exec("gradle run -p " + __dirname + "/../../PuC-SS23/compiler/", (err, output) => {
+		if (err) {
+			output123.appendLine("Compiler could not be run: " + err);
+			return;
+		}
+		output123.appendLine("Output: \n" + output);
+	});
+
+	//TODO evtl warten bis server läuft
+	const semanticProvider = new DocumentSemanticTokensProvider();
+	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'semanticLanguage' }, semanticProvider, legend));
+
 }
 
 interface IParsedToken {
@@ -41,54 +65,48 @@ interface Highlight {
 	lineNum: number;
 }
 
-
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 
-	receivedHighlighting = false;
-	highlighting: Highlight[] = [];
-	output = vscode.window.createOutputChannel("test");
-	client = net.createConnection({ port: 3000 }, () => {
-		this.output.appendLine('connected to server!');
-
-		this.client.on("data", (answer) => {
-			this.highlighting = JSON.parse(answer.toString());
-			this.receivedHighlighting = true;
-			this.output.appendLine("test");
-			this.output.appendLine(answer.toString());
-		});
-
-	});
-
-	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
+	async provideDocumentSemanticTokens(document: vscode.TextDocument): Promise<vscode.SemanticTokens> {
 		const allTokens = this._parseText(document.getText());
 		const builder = new vscode.SemanticTokensBuilder();
 
-		this.client.write(document.getText());
-		this.client.end(); //is this really necessary? do we even want this?
+		let receivedHighlighting = false;
+		let highlighting: Highlight[] = [];
+		const output = vscode.window.createOutputChannel("test");
+	
+		const client = net.createConnection({ port: 3000 }, () => {
+			output.appendLine('connected to server!');
+	
+			client.on("data", (answer) => {
+				highlighting = JSON.parse(answer.toString());
+				receivedHighlighting = true;
+				output.appendLine("test");
+				output.appendLine(answer.toString());
+			});
+		});
+
+		client.write(document.getText());
+		client.end();
 
 		//wait for callback to arrive
-		while (!this.receivedHighlighting) {
+		while (!receivedHighlighting) {
 			await new Promise(f => setTimeout(f, 10));
 		}
 
-		//print token type map
-		tokenTypes.forEach((value: number, key: string) => {
-			console.log(key, value);
-			this.output.appendLine(key + ": " + value);
-		});
-
-		for (let i = 0; i < this.highlighting.length; i++) {
+		//brauchen wir hier nicht die absoluten werte sondern den abstand zum letzten token?
+		for (let i = 0; i < highlighting.length; i++) {
 			builder.push( //lineNum startindex length tokenTypesLegend-index tokenModifiersLegend
-				this.highlighting[i]["lineNum"],
-				this.highlighting[i]["start"],
-				this.highlighting[i]["length"],
-				this._encodeTokenType(this.highlighting[i]["name"]),
+				highlighting[i]["lineNum"],
+				highlighting[i]["start"],
+				highlighting[i]["length"],
+				this._encodeTokenType(highlighting[i]["name"]),
 				0);
-			this.output.appendLine("" + this._encodeTokenType(this.highlighting[i]["name"]));
+			output.appendLine("" + this._encodeTokenType(highlighting[i]["name"]));
 		}
 
 
-		this.receivedHighlighting = false;
+		receivedHighlighting = false;
 		return builder.build();
 	}
 
