@@ -45,7 +45,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	//TODO evtl warten bis server läuft
 	const semanticProvider = new DocumentSemanticTokensProvider();
-	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'semanticLanguage' }, semanticProvider, legend));
+	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'PuC-Lang' }, semanticProvider, legend));
 
 }
 

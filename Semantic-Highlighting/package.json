@@ -17,13 +17,13 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:semanticLanguage"
+		"onLanguage:PuC-Lang"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"languages": [
 			{
-				"id": "semanticLanguage",
+				"id": "PuC-Lang",
 				"extensions": [
 					".puc"
 				]
