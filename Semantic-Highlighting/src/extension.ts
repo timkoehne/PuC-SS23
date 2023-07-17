@@ -22,17 +22,16 @@ const legend = (function () {
 	return new vscode.SemanticTokensLegend(tokenTypesLegend, tokenModifiersLegend);
 })();
 
-const output123 = vscode.window.createOutputChannel("output123");
+const error = vscode.window.createOutputChannel("error");
+const debug = vscode.window.createOutputChannel("debug");
 const controller = new AbortController();
 const { signal } = controller;
-
 
 //TODO laufenden gradle prozess beenden bei deaktivieren
 export function deactivate() {
 	//TODO this doesnt seem to work
 	controller.abort();
 }
-
 
 export async function activate(context: vscode.ExtensionContext) {
 	// //uncomment on first use to build compiler source
@@ -48,16 +47,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	//start once, then reopen the extention
 	const server = exec("gradle run -p " + __dirname + "/../../PuC-SS23/compiler/", { signal }, (err, output) => {
 		if (err) {
-			output123.appendLine("Compiler could not be run: " + err);
+			error.appendLine("Compiler could not be run: " + err);
 			return;
 		}
-		output123.appendLine("Output: \n" + output);
+		debug.appendLine("Output: \n" + output);
 	});
 
 	//TODO evtl warten bis server läuft
 	const semanticProvider = new DocumentSemanticTokensProvider();
 	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'PuC-Lang' }, semanticProvider, legend));
-
 }
 
 interface IParsedToken {
@@ -84,16 +82,15 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 
 		let receivedHighlighting = false;
 		let highlighting: Highlight[] = [];
-		const output = vscode.window.createOutputChannel("test");
 	
 		const client = net.createConnection({ port: 3000 }, () => {
-			output.appendLine('connected to server!');
+			debug.appendLine('connected to server!');
 	
 			client.on("data", (answer) => {
 				highlighting = JSON.parse(answer.toString());
 				receivedHighlighting = true;
-				output.appendLine("test");
-				output.appendLine(answer.toString());
+				debug.appendLine("test");
+				debug.appendLine(answer.toString());
 			});
 		});
 
@@ -113,9 +110,8 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 				highlighting[i]["length"],
 				this._encodeTokenType(highlighting[i]["name"]),
 				0);
-			output.appendLine("" + this._encodeTokenType(highlighting[i]["name"]));
+			debug.appendLine("" + this._encodeTokenType(highlighting[i]["name"]));
 		}
-
 
 		receivedHighlighting = false;
 		return builder.build();

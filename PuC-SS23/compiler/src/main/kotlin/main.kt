@@ -93,27 +93,30 @@ fun convertStringIndicesToLineIndices(highlights: List<Highlight>, textReceived:
 }
 
 fun handleClient(client: Socket) {
-    println("Connection established")
-    val output = PrintWriter(client.getOutputStream(), true)
-    val input = BufferedReader(InputStreamReader(client.inputStream))
-    val textReceived = input.readText()
-    println(textReceived)
+    try {
+        println("Connection established")
+        val output = PrintWriter(client.getOutputStream(), true)
+        val input = BufferedReader(InputStreamReader(client.inputStream))
+        val textReceived = input.readText()
+        println(textReceived)
 
-    val highlightListener = HighlightListener()
-    highlightListener.parseAndWalk(textReceived)
-//
-    val convertedHighlights = convertStringIndicesToLineIndices(highlightListener.highlights, textReceived)
-//    for (highlight in convertedHighlights) {
-//        println(highlight)
-//    }
-    println("Responding with $convertedHighlights")
-    output.println(convertedHighlights)
-
-
-//    val highlights = convertStringIndicesToLineIndices2(listOf(Highlight("keyword", 110, 121, 0, 0)), textReceived)
-//    for (highlight in highlights)
-//        print(highlight)
-//    output.println(highlights)
+        val highlightListener = HighlightListener()
+        highlightListener.parseAndWalk(textReceived)
+    //
+        val convertedHighlights = convertStringIndicesToLineIndices(highlightListener.highlights, textReceived)
+    //    for (highlight in convertedHighlights) {
+    //        println(highlight)
+    //    }
+        println("Responding with $convertedHighlights")
+        output.println(convertedHighlights)
 
 
+    //    val highlights = convertStringIndicesToLineIndices2(listOf(Highlight("keyword", 110, 121, 0, 0)), textReceived)
+    //    for (highlight in highlights)
+    //        print(highlight)
+    //    output.println(highlights)
+    } catch(e: Exception) {
+        println("Invalid program:")
+        println(e)
+    }
 }
