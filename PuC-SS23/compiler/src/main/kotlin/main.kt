@@ -75,7 +75,16 @@ fun convertStringIndicesToLineIndices(highlights: List<Highlight>, textReceived:
                 end = endPos.pos
             }
 
-//            println("type ${highlight.type}: start: $start, end: $end")
+            //remove last highlight if there is another one starting at the same position
+            //this corrects highlighting with function(1)(2)
+            if (newHighlights.isNotEmpty()) {
+                val lastAdded = newHighlights.last()
+                if (lastAdded.type == highlight.type && lastAdded.lineNum == lineNum && lastAdded.start == start) {
+//                    println("removing ${newHighlights.last()}")
+                    newHighlights.removeLast()
+                }
+            }
+            //add new highlight
             newHighlights.add(Highlight(highlight.type, start, end, lineNum, end - start))
         }
 
@@ -88,14 +97,15 @@ fun handleClient(client: Socket) {
     val output = PrintWriter(client.getOutputStream(), true)
     val input = BufferedReader(InputStreamReader(client.inputStream))
     val textReceived = input.readText()
+    println(textReceived)
 
     val highlightListener = HighlightListener()
     highlightListener.parseAndWalk(textReceived)
-
+//
     val convertedHighlights = convertStringIndicesToLineIndices(highlightListener.highlights, textReceived)
-    for (highlight in convertedHighlights) {
-        println(highlight)
-    }
+//    for (highlight in convertedHighlights) {
+//        println(highlight)
+//    }
     println("Responding with $convertedHighlights")
     output.println(convertedHighlights)
 

@@ -23,11 +23,20 @@ const legend = (function () {
 })();
 
 const output123 = vscode.window.createOutputChannel("output123");
+const controller = new AbortController();
+const { signal } = controller;
+
 
 //TODO laufenden gradle prozess beenden bei deaktivieren
+export function deactivate() {
+	//TODO this doesnt seem to work
+	controller.abort();
+}
+
 
 export async function activate(context: vscode.ExtensionContext) {
-	// exec('gradle build -p ../PuC-SS23/compiler/', (err, output) => {
+	// //uncomment on first use to build compiler source
+	// exec("gradle build -p " + __dirname + "/../../PuC-SS23/compiler/", (err, output) => {
 	// 	if (err) {
 	// 		console.error("Compiler could not be built: ", err);
 	// 		return;
@@ -35,7 +44,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	// 	console.log("Output: \n", output);
 	// });
 
-	exec("gradle run -p " + __dirname + "/../../PuC-SS23/compiler/", (err, output) => {
+	//TODO highlighting doesnt work when first starting the server in the same process
+	//start once, then reopen the extention
+	const server = exec("gradle run -p " + __dirname + "/../../PuC-SS23/compiler/", { signal }, (err, output) => {
 		if (err) {
 			output123.appendLine("Compiler could not be run: " + err);
 			return;
