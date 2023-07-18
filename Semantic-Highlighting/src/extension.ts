@@ -22,17 +22,16 @@ const legend = (function () {
 	return new vscode.SemanticTokensLegend(tokenTypesLegend, tokenModifiersLegend);
 })();
 
-const output123 = vscode.window.createOutputChannel("output123");
+const error = vscode.window.createOutputChannel("error");
+const debug = vscode.window.createOutputChannel("debug");
 const controller = new AbortController();
 const { signal } = controller;
-
 
 //TODO laufenden gradle prozess beenden bei deaktivieren
 export function deactivate() {
 	//TODO this doesnt seem to work
 	controller.abort();
 }
-
 
 export async function activate(context: vscode.ExtensionContext) {
 	// //uncomment on first use to build compiler source
@@ -48,16 +47,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	//start once, then reopen the extention
 	const server = exec("gradle run -p " + __dirname + "/../../PuC-SS23/compiler/", { signal }, (err, output) => {
 		if (err) {
-			output123.appendLine("Compiler could not be run: " + err);
+			error.appendLine("Compiler could not be run: " + err);
 			return;
 		}
-		output123.appendLine("Output: \n" + output);
+		debug.appendLine("Output: \n" + output);
 	});
 
 	//TODO evtl warten bis server läuft
 	const semanticProvider = new DocumentSemanticTokensProvider();
 	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'PuC-Lang' }, semanticProvider, legend));
-
 }
 
 interface IParsedToken {
@@ -78,22 +76,21 @@ interface Highlight {
 
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 
+	highlighting: Highlight[] = [];
+
 	async provideDocumentSemanticTokens(document: vscode.TextDocument): Promise<vscode.SemanticTokens> {
 		const allTokens = this._parseText(document.getText());
 		const builder = new vscode.SemanticTokensBuilder();
 
 		let receivedHighlighting = false;
-		let highlighting: Highlight[] = [];
-		const output = vscode.window.createOutputChannel("test");
 	
 		const client = net.createConnection({ port: 3000 }, () => {
-			output.appendLine('connected to server!');
+			debug.appendLine('connected to server!');
 	
 			client.on("data", (answer) => {
-				highlighting = JSON.parse(answer.toString());
+				this.highlighting = JSON.parse(answer.toString());
 				receivedHighlighting = true;
-				output.appendLine("test");
-				output.appendLine(answer.toString());
+				// debug.appendLine(answer.toString());
 			});
 		});
 
@@ -101,21 +98,24 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 		client.end();
 
 		//wait for callback to arrive
+		new Promise(f => setTimeout(f, 500)).then(() => {
+			debug.appendLine("waited long enough");
+			receivedHighlighting = true;
+		});
 		while (!receivedHighlighting) {
+			debug.appendLine("waiting to receiving highlighting");
 			await new Promise(f => setTimeout(f, 10));
 		}
 
 		//brauchen wir hier nicht die absoluten werte sondern den abstand zum letzten token?
-		for (let i = 0; i < highlighting.length; i++) {
+		for (let i = 0; i < this.highlighting.length; i++) {
 			builder.push( //lineNum startindex length tokenTypesLegend-index tokenModifiersLegend
-				highlighting[i]["lineNum"],
-				highlighting[i]["start"],
-				highlighting[i]["length"],
-				this._encodeTokenType(highlighting[i]["name"]),
+				this.highlighting[i]["lineNum"],
+				this.highlighting[i]["start"],
+				this.highlighting[i]["length"],
+				this._encodeTokenType(this.highlighting[i]["name"]),
 				0);
-			output.appendLine("" + this._encodeTokenType(highlighting[i]["name"]));
 		}
-
 
 		receivedHighlighting = false;
 		return builder.build();
