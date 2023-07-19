@@ -1,10 +1,10 @@
 type List = Cons(Integer, List) | Nil()
 
 def range(from : Integer, to : Integer) : List =>
-   if from == to then
-     List.Nil()
-   else
-     List.Cons(from, range(from + 1)(to))
+  if from == to then
+    List.Nil()
+  else
+    List.Cons(from, range(from + 1)(to))
 
 def print_list(list : List) : Text =>
   case list {

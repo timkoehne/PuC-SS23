@@ -19,7 +19,6 @@ class HighlightListener {
     private class ParseListener(val highlights: MutableList<Highlight>) : PucBaseListener() {
         override fun enterFnParam(ctx: PucParser.FnParamContext) {
             highlights.add(Highlight("parameter", ctx.param.startIndex, ctx.param.stopIndex + 1, 0, 0))
-            highlights.add(Highlight("interface", ctx.tyParam.getStart().startIndex, ctx.tyParam.getStop().stopIndex + 1, 0, 0))
             super.enterFnParam(ctx)
         }
 
@@ -32,7 +31,6 @@ class HighlightListener {
 
         override fun enterProg(ctx: PucParser.ProgContext) {
             super.enterProg(ctx)
-//            highlights.add(Highlight("prog", ctx.getStart().startIndex, ctx.getStop().stopIndex, 0, 0))
         }
 
         override fun enterFnDef(ctx: PucParser.FnDefContext) {

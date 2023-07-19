@@ -98,7 +98,7 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 		client.end();
 
 		//wait for callback to arrive
-		new Promise(f => setTimeout(f, 500)).then(() => {
+		new Promise(f => setTimeout(f, 200)).then(() => {
 			debug.appendLine("waited long enough");
 			receivedHighlighting = true;
 		});
