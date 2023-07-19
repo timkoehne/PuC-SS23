@@ -57,7 +57,6 @@ fun convertStringIndicesToLineIndices(highlights: List<Highlight>, textReceived:
         println("lineEnding \\n")
     }
 
-
     val lines = textReceived.split(lineEnding)
 
     for (highlight in highlights) {
@@ -80,11 +79,9 @@ fun convertStringIndicesToLineIndices(highlights: List<Highlight>, textReceived:
             if (newHighlights.isNotEmpty()) {
                 val lastAdded = newHighlights.last()
                 if (lastAdded.type == highlight.type && lastAdded.lineNum == lineNum && lastAdded.start == start) {
-//                    println("removing ${newHighlights.last()}")
                     newHighlights.removeLast()
                 }
             }
-            //add new highlight
             newHighlights.add(Highlight(highlight.type, start, end, lineNum, end - start))
         }
 
@@ -102,19 +99,11 @@ fun handleClient(client: Socket) {
 
         val highlightListener = HighlightListener()
         highlightListener.parseAndWalk(textReceived)
-    //
+
         val convertedHighlights = convertStringIndicesToLineIndices(highlightListener.highlights, textReceived)
-    //    for (highlight in convertedHighlights) {
-    //        println(highlight)
-    //    }
+
         println("Responding with $convertedHighlights")
         output.println(convertedHighlights)
-
-
-    //    val highlights = convertStringIndicesToLineIndices2(listOf(Highlight("keyword", 110, 121, 0, 0)), textReceived)
-    //    for (highlight in highlights)
-    //        print(highlight)
-    //    output.println(highlights)
     } catch(e: Exception) {
         println("Invalid program:")
         println(e)
