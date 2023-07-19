@@ -34,17 +34,8 @@ export function deactivate() {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-	// //uncomment on first use to build compiler source
-	// exec("gradle build -p " + __dirname + "/../../PuC-SS23/compiler/", (err, output) => {
-	// 	if (err) {
-	// 		console.error("Compiler could not be built: ", err);
-	// 		return;
-	// 	}
-	// 	console.log("Output: \n", output);
-	// });
-
 	//TODO highlighting doesnt work when first starting the server in the same process
-	//start once, then reopen the extention
+	//start once, then after a few seconds reopen the extention
 	const server = exec("gradle run -p " + __dirname + "/../../PuC-SS23/compiler/", { signal }, (err, output) => {
 		if (err) {
 			error.appendLine("Compiler could not be run: " + err);
@@ -97,7 +88,7 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 		client.write(document.getText());
 		client.end();
 
-		//wait for callback to arrive
+		//wait a little bit for callback to arrive 
 		new Promise(f => setTimeout(f, 200)).then(() => {
 			debug.appendLine("waited long enough");
 			receivedHighlighting = true;
@@ -107,9 +98,8 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 			await new Promise(f => setTimeout(f, 10));
 		}
 
-		//brauchen wir hier nicht die absoluten werte sondern den abstand zum letzten token?
 		for (let i = 0; i < this.highlighting.length; i++) {
-			builder.push( //lineNum startindex length tokenTypesLegend-index tokenModifiersLegend
+			builder.push( 
 				this.highlighting[i]["lineNum"],
 				this.highlighting[i]["start"],
 				this.highlighting[i]["length"],

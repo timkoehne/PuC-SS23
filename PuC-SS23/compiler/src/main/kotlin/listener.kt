@@ -67,8 +67,6 @@ class HighlightListener {
 
         override fun enterApp(ctx: PucParser.AppContext) {
             highlights.add(Highlight("function", ctx.getStart().startIndex, ctx.fn.getStop().stopIndex+1, 0, 0))
-//            highlights.add(Highlight("variable", ctx.arg.getStart().startIndex, ctx.arg.getStop().stopIndex+1, 0, 0))
-
             super.enterApp(ctx)
         }
 
