@@ -9,4 +9,6 @@ For this purpose we created a VS Code extension that communicates with the compi
 
 ![preview](./preview.gif)
 
-See our __[slides](./PuC%20Highlighting%20(VS-Code%20extension).pptx)__ for more information.
+See our __[slides](./Slides/PuC%20Highlighting%20(VS-Code%20extension).pdf)__ (German) for more information:
+
+![slides](./Slides/PuC%20Highlighting%20(VS-Code%20extension).gif)
